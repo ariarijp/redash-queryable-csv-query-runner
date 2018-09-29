@@ -136,6 +136,7 @@ class QueryableCsv(BaseSQLQueryRunner):
             delimiter = "\t"
 
         with closing(sqlite3.connect(':memory:')) as conn:
+            conn.text_factory = str
             self._load_csv_to_table(conn, path, delimiter)
 
             results = self._execute_query(conn, query)
