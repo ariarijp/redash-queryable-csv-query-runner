@@ -3,8 +3,6 @@ import json
 import sqlite3
 from contextlib import closing
 
-from dateutil import parser
-
 from redash.query_runner import *
 from redash.utils import JSONEncoder
 
@@ -52,14 +50,7 @@ class QueryableCsv(BaseSQLQueryRunner):
     def test_connection(self):
         pass
 
-    def run_query(self, query, user):
-        query = query.strip()
-        path = str(self.configuration.get('path'))
-        delimiter = str(self.configuration.get('delimiter', ','))
-        if delimiter == 'TAB':
-            delimiter = "\t"
-
-        columns = []
+    def _read_csv(self, path, delimiter):
         rows = []
 
         with open(path) as f:
@@ -67,6 +58,17 @@ class QueryableCsv(BaseSQLQueryRunner):
             columns = reader.fieldnames
             for row in reader:
                 rows.append(row)
+
+        return columns, rows
+
+    def run_query(self, query, user):
+        query = query.strip()
+        path = str(self.configuration.get('path'))
+        delimiter = str(self.configuration.get('delimiter', ','))
+        if delimiter == 'TAB':
+            delimiter = "\t"
+
+        columns, rows = self._read_csv(path, delimiter)
 
         create_table = u'CREATE TABLE csv ({columns});'.format(
             columns=','.join(columns))
