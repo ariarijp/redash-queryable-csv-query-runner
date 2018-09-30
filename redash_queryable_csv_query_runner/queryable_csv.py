@@ -105,6 +105,12 @@ class QueryableCsv(BaseSQLQueryRunner):
         for row in rows:
             conn.execute(insert_template, row)
 
+    def _guess_column_types(self, row, columns):
+        for i, value in enumerate(row):
+            columns[i]['type'] = _guess_type(value)
+
+        return columns
+
     def _execute_query(self, conn, query):
         with closing(conn.cursor()) as cursor:
             cursor.execute(query)
@@ -115,14 +121,9 @@ class QueryableCsv(BaseSQLQueryRunner):
             rows = []
             column_names = [c['name'] for c in columns]
 
-            for row in cursor:
-                for i, col in enumerate(row):
-                    guess = _guess_type(col)
-
-                    if columns[i]['type'] is None:
-                        columns[i]['type'] = guess
-                    elif columns[i]['type'] != guess:
-                        columns[i]['type'] = TYPE_STRING
+            for i, row in enumerate(cursor):
+                if i == 0:
+                    columns = self._guess_column_types(row, columns)
 
                 rows.append(dict(zip(column_names, row)))
 
