@@ -1,5 +1,6 @@
 import csv
 import json
+import os
 import re
 import sqlite3
 from contextlib import closing
@@ -61,7 +62,9 @@ class QueryableCsv(BaseSQLQueryRunner):
         return schema.values()
 
     def test_connection(self):
-        pass
+        path = self.configuration.get('path')
+        if not os.path.exists(path):
+            raise IOError('path: {}: Not found'.format(path))
 
     def _normalize_fieldnames(self, fieldnames):
         return [re.sub('[^0-9a-zA-Z_]+', '_', fieldname) for fieldname in fieldnames]
