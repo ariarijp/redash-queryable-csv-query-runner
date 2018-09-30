@@ -63,12 +63,15 @@ class QueryableCsv(BaseSQLQueryRunner):
     def test_connection(self):
         pass
 
+    def _normalize_fieldnames(self, fieldnames):
+        return [re.sub('[^0-9a-zA-Z_]+', '_', fieldname) for fieldname in fieldnames]
+
     def _read_csv(self, path, delimiter):
         rows = []
 
         with open(path) as f:
             reader = csv.DictReader(f, delimiter=delimiter)
-            reader.fieldnames = [re.sub('[^0-9a-zA-Z_]+', '_', fieldname) for fieldname in reader.fieldnames]
+            reader.fieldnames = self._normalize_fieldnames(reader.fieldnames)
             columns = reader.fieldnames
             for row in reader:
                 rows.append(row)
