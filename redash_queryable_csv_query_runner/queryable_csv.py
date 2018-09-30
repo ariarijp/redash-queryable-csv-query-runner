@@ -10,14 +10,14 @@ from redash.utils import JSONEncoder
 
 def _guess_type(value):
     try:
-        float(value)
-        return TYPE_FLOAT
+        int(value)
+        return TYPE_INTEGER
     except:
         pass
 
     try:
-        int(value)
-        return TYPE_INTEGER
+        float(value)
+        return TYPE_FLOAT
     except:
         pass
 
