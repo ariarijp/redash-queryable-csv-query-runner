@@ -25,6 +25,17 @@ def _guess_type(value):
     return TYPE_STRING
 
 
+def _guess_column_types(row, columns):
+    for i, value in enumerate(row):
+        columns[i]['type'] = _guess_type(value)
+
+    return columns
+
+
+def _normalize_fieldnames(fieldnames):
+    return [re.sub('[^0-9a-zA-Z_]', '_', fieldname) for fieldname in fieldnames]
+
+
 class QueryableCsv(BaseSQLQueryRunner):
     @classmethod
     def name(cls):
@@ -66,15 +77,12 @@ class QueryableCsv(BaseSQLQueryRunner):
         if not os.path.exists(path):
             raise IOError('path: {}: Not found'.format(path))
 
-    def _normalize_fieldnames(self, fieldnames):
-        return [re.sub('[^0-9a-zA-Z_]+', '_', fieldname) for fieldname in fieldnames]
-
     def _read_csv(self, path, delimiter):
         rows = []
 
         with open(path) as f:
             reader = csv.DictReader(f, delimiter=delimiter)
-            reader.fieldnames = self._normalize_fieldnames(reader.fieldnames)
+            reader.fieldnames = _normalize_fieldnames(reader.fieldnames)
             columns = reader.fieldnames
             for row in reader:
                 rows.append(row)
@@ -111,12 +119,6 @@ class QueryableCsv(BaseSQLQueryRunner):
         for row in rows:
             conn.execute(insert_template, row)
 
-    def _guess_column_types(self, row, columns):
-        for i, value in enumerate(row):
-            columns[i]['type'] = _guess_type(value)
-
-        return columns
-
     def _execute_query(self, conn, query):
         with closing(conn.cursor()) as cursor:
             cursor.execute(query)
@@ -129,7 +131,7 @@ class QueryableCsv(BaseSQLQueryRunner):
 
             for i, row in enumerate(cursor):
                 if i == 0:
-                    columns = self._guess_column_types(row, columns)
+                    columns = _guess_column_types(row, columns)
 
                 rows.append(dict(zip(column_names, row)))
 
