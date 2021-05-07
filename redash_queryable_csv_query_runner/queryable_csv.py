@@ -62,10 +62,6 @@ class QueryableCsv(BaseSQLQueryRunner):
     def type(cls):
         return 'queryable_csv'
 
-    @classmethod
-    def annotate_query(cls):
-        return False
-
     def _get_tables(self, schema):
         if 'csv' not in schema:
             schema['csv'] = {'name': 'csv', 'columns': []}
